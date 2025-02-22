@@ -16,65 +16,85 @@ BOLD		:= $(shell tput bold);
 RESET		:= $(shell tput -Txterm sgr0)
 
 CC			= cc
-CFLAGS		= -Wall -Werror -Wextra -I$(HEAD) -O3
+CFLAGS		= -Wall -Werror -Wextra -I$(HEAD)
 LDFLAGS		= -L$(LIBFT_DIR) -lft
 RM			= rm -rf
 
-SERVER_DIR	= server_src
-CLIENT_DIR	= client_src
-OBJS_DIR	= obj
-BOBJS_DIR	= obj_bonus
 LIBFT_DIR	= libft
 LIBFT		= $(LIBFT_DIR)/libft.a
+
+SRCS_DIR	= src
+OBJS_DIR	= obj
 HEAD		= inc
 
-SSRCS		= $(wildcard $(SRCS_DIR)/*.c)
-CSRCS		= $(wildcard $(SRCS_DIR)/*.c)
-# MFILES		=
-# BFILES		=
-# SRCS		= $(addprefix $(SRCS_DIR)/, $(MFILES))
-# BSRCS		= $(addprefix $(BSRCS_DIR)/, $(BFILES))
-SOBJS		= $(patsubst $(SERVER_DIR)/%.c, $(OBJS_DIR)/%.o, $(SSRCS))
-COBJS		= $(patsubst $(CLIENT_DIR)/%.c, $(OBJS_DIR)/%.o, $(CSRCS))
+SSRCS		= src/server.c
+BSSRCS		= src/server_bonus.c
+CSRCS		= src/client.c
+BCSRCS		= src/client_bonus.c
+SOBJS		= $(patsubst $(SRCS_DIR)/%.c, $(OBJS_DIR)/%.o, $(SSRCS))
+COBJS		= $(patsubst $(SRCS_DIR)/%.c, $(OBJS_DIR)/%.o, $(CSRCS))
+BSOBJS		= $(patsubst $(SRCS_DIR)/%.c, $(OBJS_DIR)/%.o, $(BSSRCS))
+BCOBJS		= $(patsubst $(SRCS_DIR)/%.c, $(OBJS_DIR)/%.o, $(BCSRCS))
 
 SERVER		= server
+BSERVER		= server_bonus
 CLIENT		= client
+BCLIENT		= client_bonus
 
 all:		$(SERVER) $(CLIENT)
 
-$(SERVER):	$(SOBJS) $(LIBFT)
-			@$(CC) $(OBJS) -o $@ $(LDFLAGS)
+$(SERVER):	$(LIBFT) $(SOBJS) 
+			@$(CC) $(SOBJS) -o $@ $(LDFLAGS)
 			@echo "$(BOLD)$(GREEN)$(SERVER) compiled Successfully$(RESET)"
 
-$(CLIENT): $(COBJS) $(LIBFT)
-			@$(CC) $(OBJS) -o $@ $(LDFLAGS)
+$(CLIENT):  $(LIBFT) $(COBJS)
+			@$(CC) $(COBJS) -o $@ $(LDFLAGS)
 			@echo "$(BOLD)$(GREEN)$(CLIENT) compiled Successfully$(RESET)"
 
-$(OBJS_DIR)/%.o:		$(SERVER_DIR)/%.c | $(OBJS_DIR)
+$(SOBJS):	$(SSRCS) | $(OBJS_DIR)
 			@$(CC) $(CFLAGS) -c $< -o $@
 			@echo "Compiling $(SERVER) ..."
 
-$(OBJS_DIR)/%.o:		$(CLIENT_DIR)/%.c | $(OBJS_DIR)
+$(COBJS):	$(CSRCS) | $(OBJS_DIR)
 			@$(CC) $(CFLAGS) -c $< -o $@
 			@echo "Compiling $(CLIENT) ..."
 
 $(OBJS_DIR):
-			@mkdir -p $(OBJS_DIR)
+			@mkdir -p $@
+
+bonus:		$(BSERVER) $(BCLIENT)
+
+$(BSERVER):	$(BSOBJS) $(LIBFT)
+			@$(CC) $(BSOBJS) -o $@ $(LDFLAGS)
+			@echo "$(BOLD)$(GREEN)$(BSERVER) compiled Successfully$(RESET)"
+
+$(BCLIENT):	$(BCOBJS) $(LIBFT)
+			@$(CC) $(BCOBJS) -o $@ $(LDFLAGS)
+			@echo "$(BOLD)$(GREEN)$(BCLIENT) compiled Successfully$(RESET)"
+
+$(BSOBJS):	$(BSSRCS) | $(OBJS_DIR)
+			@$(CC) $(CFLAGS) -c $< -o $@
+			@echo "Compiling $(BSERVER) ..."
+
+$(BCOBJS):	$(BCSRCS) | $(OBJS_DIR)
+			@$(CC) $(CFLAGS) -c $< -o $@
+			@echo "Compiling $(BCLIENT) ..."
 
 $(LIBFT):
 			@$(MAKE) all bonus -C $(LIBFT_DIR)
 
 clean:
 			@$(RM) $(OBJS_DIR)
-			@$(RM) $(BOBJS_DIR)
 			@$(MAKE) clean -C $(LIBFT_DIR)
 			@echo "Cleaning obj files."
 
 fclean:	
 			@echo "Cleaning all files."
 			@$(MAKE) clean
-			@$(RM) $(NAME)
-			@$(RM) $(BNAME)
+			@$(RM) $(SERVER)
+			@$(RM) $(CLIENT)
+			@$(RM) $(BSERVER)
+			@$(RM) $(BCLIENT)
 			@$(MAKE) fclean -C $(LIBFT_DIR)
 
 re:
@@ -83,4 +103,4 @@ re:
 			@$(MAKE) all
 
 .PHONY: all clean fclean re bonus
-.SECONDARY:	$(OBJS) $(BOBJS) $(LIBFT)
+.SECONDARY:	$(SOBJS) $(COBJS) $(LIBFT) $(BSOBJS) $(BCOBJS)
